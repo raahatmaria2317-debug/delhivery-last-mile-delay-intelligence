@@ -233,6 +233,7 @@ correlations = numeric_data.corr()
 
 correlations.to_csv(
     "outputs/part_a_correlations.csv",
+    index=False,
     float_format="%.4f"
 )
 
