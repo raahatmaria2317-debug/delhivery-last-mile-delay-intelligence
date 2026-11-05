@@ -112,7 +112,7 @@ Important preprocessing steps included:
 |---|---:|
 | Distance | 314.95 km |
 | Parcel weight | 1.83 kg |
-| Declared value | ₹1,121.50 |
+| Declared value | INR 1,121.50 |
 
 The cleaned dataset was used to build the modelling table for regression and classification.
 
@@ -591,6 +591,7 @@ The four tier-versus-segment mismatches should also receive additional review:
 - HUB13 — Nagpur
 - HUB15 — Kochi
 - HUB22 — Dehradun
+
 The Escalate segment contains 9 hubs, with an average delivery time of 64.65 hours and an average delay rate of 46.00%. These hubs should receive the highest operational priority.
 
 ## 7.2 Shipment-Level Recommendations
