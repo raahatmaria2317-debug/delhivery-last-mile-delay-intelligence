@@ -18,7 +18,7 @@ An end-to-end machine learning project for last-mile delivery intelligence.
 This educational project uses a synthetic shipment dataset. It does not contain actual Delhivery operational or customer records.
 
 ## Project Status
-Under development — AI/ML Certification Program, E&ICT Academy, IIT Roorkee.
+Completed — AI/ML Certification Program, E&ICT Academy, IIT Roorkee.
 
 
 ## Model results (regression)
@@ -56,7 +56,7 @@ Three learning rates were compared while keeping the number of estimators at 100
 |---|---:|---:|
 | 0.01 | 10.0018 | 0.7127 |
 | 0.1 | 4.9165 | 0.9306 |
-| 1.0 | 7.3609 | 0.8444 |
+| 1.0 | 7.3946 | 0.8429 |
 
 The learning rate of **0.1 performed best**. A rate of 0.01 learned too slowly with only 100 estimators, while 1.0 was too aggressive and overshot useful improvements, resulting in weaker validation performance.
 
@@ -372,7 +372,7 @@ Three learning rates were compared while keeping the number of estimators at 100
 |---|---:|---:|
 | 0.01 | 10.0018 | 0.7127 |
 | 0.1 | 4.9165 | 0.9306 |
-| 1.0 | 7.3609 | 0.8444 |
+| 1.0 | 7.3946 | 0.8429 |
 
 The learning rate of **0.1 performed best**. A rate of 0.01 learned too slowly with only 100 estimators, while 1.0 was too aggressive and resulted in weaker validation performance.
 
@@ -511,7 +511,7 @@ At this threshold, validation performance was:
 
 Increasing the threshold generally reduces false positives but can also increase false negatives.
 
-The selected threshold balances identifying delayed shipments with avoiding unnecessary delay alerts.
+The threshold of 0.5 was selected because it was the highest tested threshold that maintained validation recall of at least 0.80. At this threshold, the model identified 83.33% of delayed validation shipments while maintaining a precision of 79.55%.
 
 ## 4.7 Final Test Performance
 
@@ -531,7 +531,7 @@ The test confusion matrix was:
 | Actual On-time | 125 | 14 |
 | Actual Delayed | 10 | 31 |
 
-Test recall was lower than validation recall. One reason to interpret this difference carefully is that the test set contained only 41 delayed shipments, so a relatively small number of additional missed delays can noticeably change the recall score.
+The test recall of 0.7561 was lower than the validation recall of 0.8333. The test set contained only 41 delayed shipments, so each additional missed delayed shipment had a noticeable effect on recall. This highlights the importance of evaluating the model on unseen data and monitoring its performance after deployment.
 
 ## 4.8 Final Selected Configuration
 
@@ -577,7 +577,7 @@ K-means clustering was evaluated using different values of K. Cluster separation
 
 Although the separation ratio increased when K increased to 4 and 5, **K = 3 was selected**.
 
-The reason was operational usefulness. With three clusters, every segment contains at least seven hubs. With four or five clusters, some groups contain fewer than six hubs. These smaller groups would be less suitable for creating separate operational playbooks.
+The reason was operational usefulness. K = 3 produced three reasonably balanced clusters containing 9, 8 and 7 hubs. Although K = 4 and K = 5 achieved higher separation ratios, they produced smaller clusters, including groups with only 4, 3 and 2 hubs. These smaller groups would be less suitable for creating separate operational playbooks.
 
 ## 5.3 Final Hub Segments
 
@@ -600,6 +600,22 @@ These hubs have higher delivery times and delay rates than Standard hubs. They s
 ### Escalate
 
 These hubs have the highest average delivery time, delay rate, distance and number of stops. They should receive priority operational attention and hub-level investigation.
+
+The nine hubs assigned to the Escalate segment were:
+
+| Hub | City | Tier | Delay Rate |
+|---|---|---:|---:|
+| HUB13 | Nagpur | 2 | 46% |
+| HUB15 | Kochi | 2 | 36% |
+| HUB17 | Patna | 3 | 46% |
+| HUB18 | Ranchi | 3 | 38% |
+| HUB19 | Guwahati | 3 | 62% |
+| HUB20 | Raipur | 3 | 48% |
+| HUB21 | Bhubaneswar | 3 | 40% |
+| HUB23 | Siliguri | 3 | 44% |
+| HUB24 | Agartala | 3 | 54% |
+
+HUB19 (Guwahati) had the highest observed delay rate at 62%, followed by HUB24 (Agartala) at 54%. These hubs should receive particular attention during operational reviews.
 
 ## 5.4 Hub Tier Versus Segment Mismatches
 
@@ -659,7 +675,7 @@ The prediction pipeline:
 1. Loads new shipment records.
 2. Loads the hub information.
 3. Cleans new shipments using the shared preprocessing functions.
-4. Uses the saved training-data imputation medians.
+4. Uses the saved imputation medians from the model packaging process.
 5. Builds the same features used during model training.
 6. Arranges features in the saved training feature order.
 7. Loads the packaged Random Forest model.
@@ -791,6 +807,7 @@ The four tier-versus-segment mismatches should also receive additional review:
 - HUB13 — Nagpur
 - HUB15 — Kochi
 - HUB22 — Dehradun
+The Escalate segment contains 9 hubs, with an average delivery time of 64.65 hours and an average delay rate of 46.00%. These hubs should receive the highest operational priority.
 
 ## 7.2 Shipment-Level Recommendations
 
@@ -815,9 +832,9 @@ On the final test dataset:
 - Precision = 0.6889
 - Recall = 0.7561
 
-This means approximately 7 out of every 10 flagged shipments were actually delayed in the test set.
+A precision of 0.6889 means that approximately 68.89% of shipments predicted as delayed were actually delayed.
 
-The model identified approximately 8 out of every 10 delayed shipments in the test set.
+A recall of 0.7561 means that the model correctly identified approximately 75.61% of all delayed shipments in the test dataset.
 
 These results should be treated as estimates because the test dataset contained only 41 delayed shipments.
 
@@ -860,7 +877,7 @@ The following are proposed operational monitoring triggers, not measured product
 |---|---|---|
 | Weekly actual delay rate | Weekly | Increase of more than 5 percentage points compared with the recent baseline |
 | Flagged shipment share | Daily | More than 30% of shipments flagged |
-| Classification recall | Monthly, after outcomes are available | Recall below 0.75 |
+|Classification recall | Monthly, after outcomes are   available | Recall below 0.75 on recent labelled production data|
 | Hub delay rate | Weekly | Any hub delay rate above 25% |
 | Missing feature values | Daily | More than 2% missing values in required input fields |
 
@@ -876,7 +893,7 @@ A proposed production schedule would be:
 - Retrain earlier if sustained performance degradation or major operational changes are detected.
 - Validate every retrained model before replacing the existing production model.
 
-The test dataset should remain untouched during model development and should not be repeatedly used for threshold selection.
+The test dataset should remain separate from model training, hyperparameter tuning and threshold selection. It should be used for final evaluation rather than repeated model-development decisions.
 
 ## 8.4 Handling Seasonal and Sale-Event Effects
 
@@ -920,11 +937,11 @@ The dataset is synthetic and does not represent actual Delhivery operational or 
 
 ### 9.2 Limited Test Data
 
-The classification test dataset contains only 180 shipments, including 41 delayed shipments. Consequently, a small change in the number of correctly identified delayed shipments can noticeably change precision and recall.
+The classification test dataset contains only 180 shipments, including 41 delayed shipments. Consequently, even a small change in the number of correctly or incorrectly classified delayed shipments can noticeably affect the reported precision, recall and F1-score
 
 ### 9.3 Threshold Selection
 
-The classification threshold was selected using a single validation split. Different datasets or operational costs may require a different threshold.
+The classification threshold was selected using a single validation split. The packaged threshold of 0.5 was retained because it achieved validation recall of 0.8333, meeting the minimum recall requirement of 0.80. A threshold of 0.6 achieved a slightly higher F1-score but its validation recall was only 0.7619, so it did not meet the selection rule. Different datasets and operational costs may require a different threshold. The selected threshold may not be optimal for real-world data or when the relative costs of false positives and false negatives change.
 
 ### 9.4 Hub Segmentation
 
@@ -947,8 +964,8 @@ The Delhivery Last-Mile Delay Intelligence Pipeline demonstrates an end-to-end m
 The project includes:
 
 - Data cleaning and exploratory analysis.
-- Delivery-time prediction using regression.
-- Delay classification using Random Forest.
+- Delivery-time prediction using Linear Regression.
+- Delay classification using Random Forest with seven selected features and a classification threshold of 0.5.
 - Feature selection and hyperparameter experiments.
 - Classification threshold selection.
 - K-means segmentation of 24 delivery hubs.
@@ -958,5 +975,34 @@ The project includes:
 - Reproducibility checks and production monitoring recommendations.
 
 The project demonstrates how machine learning can support delivery operations by predicting potential delays, identifying underperforming hubs and recommending proactive actions.
+
+### Delay Patterns
+
+- Express shipments had the highest delay rate at 48.97% (119 of 243 shipments).
+- Standard shipments had a delay rate of 20.56% (132 of 642 shipments).
+- Economy shipments had the lowest delay rate at 8.57% (27 of 315 shipments).
+- Tier 3 hubs had a delay rate of 44%, compared with 21.5% for Tier 2 and 4% for Tier 1.
+- Delay rates increased substantially with distance:
+  - 0–200 km: 2.19%
+  - 201–400 km: 13.68%
+  - 401–600 km: 43.64%
+  - Above 600 km: 85.23%
+
+### Correlation Findings
+
+The three strongest positive correlations with delivery hours were:
+
+| Feature | Correlation |
+|---|---:|
+| promised_hours | 0.8372 |
+| distance_km | 0.4013 |
+| n_stops | 0.3247 |
+
+Correlation indicates association, not causation.
+
+### Declared Value Distribution
+
+The mean declared value was INR 1,533.05, while the median was INR 1,121.50. The higher mean indicates a right-skewed distribution. A natural logarithm transformation was applied to declared values to reduce the influence of unusually high values and make the distribution more balanced. The transformed mean was 7.0277 and the transformed median was 7.0224.
+
 
 **No Waste. Just Intelligence.**

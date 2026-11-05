@@ -94,47 +94,40 @@ def build_features(clean, hubs):
     Does not use delivery_hours to create features.
     """
 
-    # Work on a copy
     features = clean.copy()
 
-    # 1. Merge hub information
     hub_columns = [
         "hub_id",
+        "hub_city",
+        "region",
         "hub_tier",
         "hub_daily_capacity"
     ]
 
+    hub_data = hubs[hub_columns].drop_duplicates(subset="hub_id")
+
     features = features.merge(
-        hubs[hub_columns],
+        hub_data,
         on="hub_id",
         how="left",
         validate="many_to_one"
     )
 
-    # 2. Create promised delivery hours
-    features["promised_hours"] = (
-        features["service_type"]
-        .map(PROMISED_HOURS)
-    )
+    features["promised_hours"] = features["service_type"].map(PROMISED_HOURS)
 
-    # 3. Create COD indicator
     features["is_cod"] = (
         features["payment_mode"] == "COD"
     ).astype(int)
 
-    # 4. Create weekend indicator
     features["is_weekend"] = (
         features["dispatch_time"].dt.dayofweek >= 5
     ).astype(int)
 
-    # 5. Extract dispatch hour
-    features["dispatch_hour"] = (
-        features["dispatch_time"].dt.hour
-    )
+    features["dispatch_hour"] = features["dispatch_time"].dt.hour
 
-    # 6. Log-transform declared value
-    features["log_declared_value"] = np.log1p(
+    features["log_declared_value"] = np.log(
         features["declared_value_inr"]
     )
+
 
     return features
